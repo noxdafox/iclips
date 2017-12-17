@@ -1,0 +1,11 @@
+{
+    "display_name":"CLIPS",
+    "argv":
+    [
+        "python3",
+        "-m",
+        "clips_kernel",
+        "-f",
+        "{connection_file}"
+    ]
+}
