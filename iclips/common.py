@@ -20,7 +20,7 @@ KEYWORDS = ('SYMBOL',
             'type',
             'slot',
             'multislot',
-            't')
+            't ')
 
 BUILTINS = ('!=',
             '*',
