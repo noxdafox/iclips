@@ -1,6 +1,6 @@
 from difflib import get_close_matches
 
-import clips
+from clips import CLIPSError, Environment, Router
 
 from ipykernel.kernelbase import Kernel
 
@@ -18,20 +18,29 @@ class CLIPSKernel(Kernel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.environment = clips.Environment()
+        self.environment = Environment()
+        self.output = OutputRouter()
+        self.output.add_to_environment(self.environment)
 
     def do_execute(self, code: str, silent: bool, *_) -> dict:
         """Code execution request handler."""
+        output = ''
         status = 'ok'
 
-        try:
-            result = self.eval_code(code) if code else ''
+        if not code.strip():
+            return {'status': status, 'execution_count': self.execution_count}
 
-            if not silent:
-                stream_content = {'name': 'stdout', 'text': result}
-                self.send_response(self.iopub_socket, 'stream', stream_content)
+        try:
+            result = self.execute_code(code)
+            output = self.output.output + '\n' + str(result)
         except RuntimeError:
             status = 'error'
+            output = self.output.output
+        finally:
+            if not silent:
+                stream = {'name': 'stdout', 'text': output.strip()}
+
+                self.send_response(self.iopub_socket, 'stream', stream)
 
         return {'status': status, 'execution_count': self.execution_count}
 
@@ -54,7 +63,7 @@ class CLIPSKernel(Kernel):
 
         return {'status': status, 'indent': '  '}
 
-    def eval_code(self, code: str) -> str:
+    def execute_code(self, code: str) -> str:
         """Evaluate CLIPS code."""
         result = None
         function = code.strip('()').split()[0]
@@ -64,10 +73,33 @@ class CLIPSKernel(Kernel):
                 self.environment.build(code)
             else:
                 result = self.environment.eval(code)
-        except clips.CLIPSError as error:
+        except CLIPSError as error:
             raise RuntimeError(error)
 
         return str(result) if result is not None else ''
+
+
+class OutputRouter(Router):
+    ROUTERS = {'wtrace', 'stdout', 'wclips', 'wdialog',
+               'wdisplay', 'wwarning', 'werror'}
+
+    def __init__(self):
+        super().__init__('iclips-output-router', 40)
+        self._output = ''
+
+    @property
+    def output(self) -> str:
+        ret = self._output
+
+        self._output = ''
+
+        return ret
+
+    def query(self, name: str) -> bool:
+        return name in self.ROUTERS
+
+    def print(self, _, message: str):
+        self._output += message
 
 
 def even_parenthesis(code: str) -> bool:
