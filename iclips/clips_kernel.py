@@ -1,6 +1,10 @@
+from difflib import get_close_matches
+
 import clips
 
 from ipykernel.kernelbase import Kernel
+
+from iclips.common import KEYWORDS, BUILTINS
 
 
 class CLIPSKernel(Kernel):
@@ -16,11 +20,12 @@ class CLIPSKernel(Kernel):
         super().__init__(*args, **kwargs)
         self.environment = clips.Environment()
 
-    def do_execute(self, code, silent, *_):
+    def do_execute(self, code: str, silent: bool, *_) -> dict:
+        """Code execution request handler."""
         status = 'ok'
 
         try:
-            result = self.eval_code(code)
+            result = self.eval_code(code) if code else ''
 
             if not silent:
                 stream_content = {'name': 'stdout', 'text': result}
@@ -30,12 +35,27 @@ class CLIPSKernel(Kernel):
 
         return {'status': status, 'execution_count': self.execution_count}
 
+    def do_complete(self, code: str, cursor: int) -> int:
+        """Code completion request handler."""
+        token = code[:cursor].split()[-1].strip('()')
+
+        matches = [m for m in
+                   get_close_matches(token, COMPLETION, n=25, cutoff=0.1)
+                   if m.startswith(token)]
+
+        return {'status': 'ok',
+                'cursor_start': cursor - len(token),
+                'cursor_end': cursor,
+                'matches': matches}
+
     def do_is_complete(self, code: str) -> dict:
+        """Newline continuation checker."""
         status = 'complete' if even_parenthesis(code) else 'incomplete'
 
         return {'status': status, 'indent': '  '}
 
     def eval_code(self, code: str) -> str:
+        """Evaluate CLIPS code."""
         result = None
         function = code.strip('()').split()[0]
 
@@ -68,6 +88,7 @@ def even_parenthesis(code: str) -> bool:
     return counter == 0
 
 
+COMPLETION = KEYWORDS + BUILTINS
 DEFCONSTRUCTS = ('deftemplate', 'deffunction', 'defmodule',
                  'defrule', 'defclass', 'defglobal')
 
