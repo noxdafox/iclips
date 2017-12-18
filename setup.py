@@ -11,7 +11,10 @@ setup(
     description=("CLIPS Jupyter console"),
     license="GPL",
     keywords="clips expert-system jupyter",
-    install_requires=["jupyter-console"],
+    install_requires=[
+        "clipspy",
+        "jupyter-console"
+    ],
     data_files=[
         (os.path.join('share', 'jupyter', 'kernels', 'clips'), 'kernel.json')
     ],
