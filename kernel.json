@@ -4,7 +4,7 @@
     [
         "python3",
         "-m",
-        "clips_kernel",
+        "iclips.clips_kernel",
         "-f",
         "{connection_file}"
     ]
