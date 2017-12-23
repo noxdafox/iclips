@@ -1,8 +1,7 @@
 from difflib import get_close_matches
 
-from clips import CLIPSError, Environment, Router
-
 from ipykernel.kernelbase import Kernel
+from clips import CLIPSError, Environment, Router
 
 from iclips.common import KEYWORDS, BUILTINS
 
@@ -47,9 +46,10 @@ class CLIPSKernel(Kernel):
     def do_complete(self, code: str, cursor: int) -> int:
         """Code completion request handler."""
         token = code[:cursor].split()[-1].strip('()')
+        completion = self.completion_list(code, token)
 
         matches = [m for m in
-                   get_close_matches(token, COMPLETION, n=25, cutoff=0.1)
+                   get_close_matches(token, completion, n=100, cutoff=0.1)
                    if m.startswith(token)]
 
         return {'status': 'ok',
@@ -77,6 +77,19 @@ class CLIPSKernel(Kernel):
             raise RuntimeError(error)
 
         return str(result) if result is not None else ''
+
+    def completion_list(self, code, token):
+        completion = list(COMPLETION)
+        completion += [t for t in code.strip('()').split() if t != token]
+
+        classes = [c for c in self.environment.classes()]
+        completion.extend((c.name for c in classes))
+        completion.extend((s.name for c in classes for s in c.slots()))
+        templates = [t for t in self.environment.templates()]
+        completion.extend((t.name for t in templates))
+        completion.extend((s.name for t in templates for s in t.slots()))
+
+        return completion
 
 
 class OutputRouter(Router):
