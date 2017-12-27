@@ -13,7 +13,7 @@ iCLIPS Documentation
 
 iCLIPS provides an interactive shell for the 'C' Language Integrated Production System (`CLIPS <http://www.clipsrules.net/>`_).
 
-.. image:: ../example.png
+.. image:: example.png
 
 Features:
 
