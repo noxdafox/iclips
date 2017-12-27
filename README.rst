@@ -1,7 +1,7 @@
-ICLIPS
+iCLIPS
 ======
 
-A simple Jupyter Kernel for CLIPS_
+Jupyter Kernel for CLIPS_
 
 :Source: https://github.com/noxdafox/iclips
 

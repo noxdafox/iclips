@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='ICLIPS',
+    name='iCLIPS',
     version='0.0.1',
     author='Matteo Cafasso',
     author_email='noxdafox@gmail.com',
