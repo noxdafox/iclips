@@ -1,3 +1,7 @@
+import os
+import re
+from enum import IntEnum
+from traceback import format_exc
 from difflib import get_close_matches
 
 from ipykernel.kernelbase import Kernel
@@ -17,31 +21,27 @@ class CLIPSKernel(Kernel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.cell_mode = CellMode.CLIPS
         self.environment = Environment()
         self.output = OutputRouter()
         self.output.add_to_environment(self.environment)
+        global_environment(self.environment)
 
     def do_execute(self, code: str, silent: bool, *_) -> dict:
         """Code execution request handler."""
-        output = ''
-        status = 'ok'
+        status = {'status': 'ok', 'execution_count': self.execution_count}
 
         if not code.strip():
-            return {'status': status, 'execution_count': self.execution_count}
+            return status
+        elif code.startswith("%%"):
+            status = self.magic_cell(code, silent)
+        elif self.cell_mode == CellMode.CLIPS:
+            status = self.clips_code_cell(code, silent)
+        elif self.cell_mode in (CellMode.PYTHON, CellMode.DEFPYFUNCTION):
+            status = self.python_code_cell(code, silent)
+            self.cell_mode = CellMode.CLIPS
 
-        try:
-            result = self.execute_code(code)
-            output = self.output.output + '\n' + str(result)
-        except RuntimeError:
-            status = 'error'
-            output = self.output.output
-        finally:
-            if not silent:
-                stream = {'name': 'stdout', 'text': output.strip()}
-
-                self.send_response(self.iopub_socket, 'stream', stream)
-
-        return {'status': status, 'execution_count': self.execution_count}
+        return status
 
     def do_complete(self, code: str, cursor: int) -> int:
         """Code completion request handler."""
@@ -59,11 +59,100 @@ class CLIPSKernel(Kernel):
 
     def do_is_complete(self, code: str) -> dict:
         """Newline continuation checker."""
-        status = 'complete' if even_parenthesis(code) else 'incomplete'
+        if self.cell_mode == CellMode.CLIPS:
+            indent = '  '
+            status = 'complete' if even_parenthesis(code) else 'incomplete'
+        elif self.cell_mode in (CellMode.PYTHON, CellMode.DEFPYFUNCTION):
+            indent = ''
+            status = 'complete' if code.endswith(os.linesep*2) else 'incomplete'
 
-        return {'status': status, 'indent': '  '}
+        return {'status': status, 'indent': indent}
 
-    def execute_code(self, code: str) -> str:
+    def magic_cell(self, code: str, silent: bool, *_) -> dict:
+        """Handle a cell containing Magic commands."""
+        status = 'ok'
+        magic = code.lstrip('%').strip()
+
+        if magic == 'python':
+            self.cell_mode = CellMode.PYTHON
+            text = "Python mode: return twice to execute the inserted code." + \
+                   os.linesep
+        elif magic == 'define-python-function':
+            self.cell_mode = CellMode.DEFPYFUNCTION
+            text = "DefPyFunction mode: return twice " + \
+                   "to define the inserted function within CLIPS." + \
+                   os.linesep
+        else:
+            status = 'error'
+            text = "Unrecognised magic command" + os.linesep
+
+        if not silent:
+            stream = {'name': 'stdout', 'text': text}
+
+            self.send_response(self.iopub_socket, 'stream', stream)
+
+        return {'status': status, 'execution_count': self.execution_count}
+
+    def clips_code_cell(self, code: str, silent: bool, *_) -> dict:
+        """Handle a code cell containing CLIPS code."""
+        output = ''
+        status = 'ok'
+
+        try:
+            result = self.execute_clips_code(code)
+            output = self.output.output + os.linesep + str(result)
+        except RuntimeError:
+            status = 'error'
+            output = self.output.output
+        finally:
+            if not silent:
+                stream = {'name': 'stdout', 'text': output.strip()}
+
+                self.send_response(self.iopub_socket, 'stream', stream)
+
+        return {'status': status, 'execution_count': self.execution_count}
+
+    def python_code_cell(self, code: str, silent: bool, *_) -> dict:
+        """Handle a code cell containing Python code."""
+        output = ''
+        status = 'ok'
+
+        try:
+            exec(code, globals())
+        except Exception as error:
+            status = 'error'
+            output = format_exc()
+        else:
+            if self.cell_mode == CellMode.DEFPYFUNCTION:
+                status, output = self.define_python_function(code)
+
+        if not silent:
+            stream = {'name': 'stdout', 'text': output.strip()}
+
+            self.send_response(self.iopub_socket, 'stream', stream)
+
+        return {'status': status, 'execution_count': self.execution_count}
+
+    def define_python_function(self, code: str) -> tuple:
+        output = ''
+        status = 'ok'
+        match = re.search(FUNCNAME_REGEX, code)
+
+        try:
+            funcname = match.group(1)
+            function = globals()[funcname]
+
+            self.environment.define_function(function)
+        except (LookupError, AttributeError):
+            status = 'error'
+            output = "No function definition found"
+        except CLIPSError as error:
+            status = 'error'
+            output = str(error) + os.linesep
+
+        return status, output
+
+    def execute_clips_code(self, code: str) -> str:
         """Evaluate CLIPS code."""
         result = None
         function = code.strip('()').split()[0]
@@ -78,7 +167,8 @@ class CLIPSKernel(Kernel):
 
         return str(result) if result is not None else ''
 
-    def completion_list(self, code, token):
+    def completion_list(self, code: str, token: str) -> list:
+        """Return a list of completion candidates."""
         completion = list(COMPLETION)
         completion += [t for t in code.strip('()').split() if t != token]
 
@@ -134,7 +224,21 @@ def even_parenthesis(code: str) -> bool:
     return counter == 0
 
 
-COMPLETION = KEYWORDS + BUILTINS
+def global_environment(environment):
+    global CLIPS
+    CLIPS = environment
+
+
+class CellMode(IntEnum):
+    CLIPS = 0
+    PYTHON = 1
+    DEFPYFUNCTION = 2
+
+
+CLIPS = None
+FUNCNAME_REGEX = r'def (.*)\(.*\)'
+MAGIC_COMMANDS = 'python', 'define-python-function'
+COMPLETION = KEYWORDS + BUILTINS + MAGIC_COMMANDS
 DEFCONSTRUCTS = ('deftemplate', 'deffunction', 'defmodule',
                  'defrule', 'defclass', 'defglobal')
 
