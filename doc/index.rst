@@ -31,6 +31,43 @@ Features:
 * Possibility to integrate Python code bringing into CLIPS the Python libraries and eco-system via `CLIPSPy <https://github.com/noxdafox/clipspy>`_.
 
 
+Requirements
+------------
+
+* CLIPS 6.30
+* Python 3
+* CLIPSPy
+* Jupyter Console
+
+
+Installation
+------------
+
+Debian and derivatives
+++++++++++++++++++++++
+
+Install CLIPS libraries and headers.
+
+.. code:: bash
+
+$ sudo apt install libclips libclips-dev
+
+Install Python 3, Pip and the CFFI libraries.
+
+.. code:: bash
+
+$ sudo apt install python3 python3-pip python3-cffi
+
+Install iCLIPS
+
+$ sudo pip3 install iclips
+
+Windows
++++++++
+
+CLIPS is statically compiled within the CLIPSPy module. Therefore, it should be enough to install Python 3 and iCLIPS via Pip.
+
+
 Embedding Python code
 ---------------------
 
@@ -118,7 +155,6 @@ An object method is defined within the CLIPSPy Environment.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
 
 
 Indices and tables

@@ -17,6 +17,8 @@ Jupyter Kernel for CLIPS_
 Installation
 ------------
 
+Detailed instructions in the documentation.
+
 .. code:: bash
 
     pip install iclips
