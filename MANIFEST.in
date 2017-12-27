@@ -1,1 +1,1 @@
-include version.py LICENSE.txt kernel.json
+include version.py LICENSE.txt kernel.json doc/example.png
