@@ -7,7 +7,7 @@ from iclips.common import KEYWORDS, BUILTINS
 
 
 class CLIPSKernel(Kernel):
-    banner = 'ICLIPS'
+    banner = 'iCLIPS'
     implementation = 'CLIPS'
     implementation_version = '0.0.1'
     language_info = {'name': 'clips',
