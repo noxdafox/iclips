@@ -93,11 +93,12 @@ class CLIPSKernel(Kernel):
 
 
 class OutputRouter(Router):
+    """CLIPS Router for capturing stdout."""
     ROUTERS = {'wtrace', 'stdout', 'wclips', 'wdialog',
                'wdisplay', 'wwarning', 'werror'}
 
     def __init__(self):
-        super().__init__('iclips-output-router', 40)
+        super().__init__('iclips-output-router', 30)
         self._output = ''
 
     @property
