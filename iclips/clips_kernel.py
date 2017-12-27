@@ -4,8 +4,8 @@ from enum import IntEnum
 from traceback import format_exc
 from difflib import get_close_matches
 
+import clips
 from ipykernel.kernelbase import Kernel
-from clips import CLIPSError, Environment, Router
 
 from iclips.common import KEYWORDS, BUILTINS
 
@@ -22,7 +22,7 @@ class CLIPSKernel(Kernel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cell_mode = CellMode.CLIPS
-        self.environment = Environment()
+        self.environment = clips.Environment()
         self.output = OutputRouter()
         self.output.add_to_environment(self.environment)
         global_environment(self.environment)
@@ -146,7 +146,7 @@ class CLIPSKernel(Kernel):
         except (LookupError, AttributeError):
             status = 'error'
             output = "No function definition found"
-        except CLIPSError as error:
+        except clips.CLIPSError as error:
             status = 'error'
             output = str(error) + os.linesep
 
@@ -162,7 +162,7 @@ class CLIPSKernel(Kernel):
                 self.environment.build(code)
             else:
                 result = self.environment.eval(code)
-        except CLIPSError as error:
+        except clips.CLIPSError as error:
             raise RuntimeError(error)
 
         return str(result) if result is not None else ''
@@ -182,7 +182,7 @@ class CLIPSKernel(Kernel):
         return completion
 
 
-class OutputRouter(Router):
+class OutputRouter(clips.Router):
     """CLIPS Router for capturing stdout."""
     ROUTERS = {'wtrace', 'stdout', 'wclips', 'wdialog',
                'wdisplay', 'wwarning', 'werror'}
