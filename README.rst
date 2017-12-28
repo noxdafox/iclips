@@ -5,6 +5,7 @@ Jupyter Kernel for CLIPS_
 
 :Source: https://github.com/noxdafox/iclips
 :Documentation: https://iclips.readthedocs.io
+:Download: https://pypi.python.org/pypi/iclips
 
 |docs badge|
 
