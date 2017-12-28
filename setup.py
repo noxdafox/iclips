@@ -1,5 +1,4 @@
 import os
-import sys
 import subprocess
 
 from setuptools import setup, find_packages
@@ -50,8 +49,7 @@ setup(
         'jupyter-console'
     ],
     data_files=[
-        (os.path.join(sys.prefix, 'share/jupyter/kernels/clips'),
-         ['kernel.json'])
+        (os.path.join('share/jupyter/kernels/clips'), ['kernel.json'])
     ],
     packages=find_packages(),
     entry_points={
