@@ -193,7 +193,11 @@ class CLIPSKernel(Kernel):
         completion.extend((s.name for c in classes for s in c.slots()))
         templates = [t for t in self.environment.templates()]
         completion.extend((t.name for t in templates))
+
         completion.extend((s.name for t in templates for s in t.slots()))
+        completion.extend((g.name for g in self.environment.generics()))
+        completion.extend((f.name for f in self.environment.functions()))
+        completion.extend((g.name for g in self.environment.globals()))
 
         return completion
 
