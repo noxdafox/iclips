@@ -16,6 +16,7 @@
 
 import os
 import re
+import glob
 from enum import IntEnum
 from traceback import format_exc
 from difflib import get_close_matches
@@ -61,7 +62,7 @@ class CLIPSKernel(Kernel):
 
     def do_complete(self, code: str, cursor: int) -> int:
         """Code completion request handler."""
-        token = code[:cursor].split()[-1].strip('()')
+        token = code[:cursor].split()[-1].strip('()"')
         completion = self.completion_list(code, token)
 
         matches = [m for m in
@@ -198,6 +199,7 @@ class CLIPSKernel(Kernel):
         completion.extend((g.name for g in self.environment.generics()))
         completion.extend((f.name for f in self.environment.functions()))
         completion.extend((g.name for g in self.environment.globals()))
+        completion.extend(glob.glob(token + '*'))
 
         return completion
 
