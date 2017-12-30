@@ -13,7 +13,7 @@ Jupyter Kernel for CLIPS_
    :target: http://iclips.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: doc/example.png
+.. image:: https://iclips.readthedocs.io/en/latest/_images/example.png
 
 Installation
 ------------
