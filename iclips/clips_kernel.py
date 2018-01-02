@@ -17,6 +17,8 @@
 import os
 import re
 import glob
+import contextlib
+from io import StringIO
 from enum import IntEnum
 from traceback import format_exc
 from difflib import get_close_matches
@@ -30,7 +32,7 @@ from iclips.common import KEYWORDS, BUILTINS
 class CLIPSKernel(Kernel):
     banner = 'iCLIPS'
     implementation = 'CLIPS'
-    implementation_version = '0.0.2'
+    implementation_version = '0.0.4'
     language_info = {'name': 'clips',
                      'version': '6.30',
                      'file_extension': 'clp',
@@ -40,8 +42,8 @@ class CLIPSKernel(Kernel):
         super().__init__(*args, **kwargs)
         self.cell_mode = CellMode.CLIPS
         self.environment = clips.Environment()
-        self.output = OutputRouter()
-        self.output.add_to_environment(self.environment)
+        self.clips_output = OutputRouter()
+        self.clips_output.add_to_environment(self.environment)
         global_environment(self.environment)
 
     def do_execute(self, code: str, silent: bool, *_) -> dict:
@@ -117,10 +119,10 @@ class CLIPSKernel(Kernel):
 
         try:
             result = self.execute_clips_code(code)
-            output = self.output.output + os.linesep + str(result)
+            output = self.clips_output.output + os.linesep + str(result)
         except RuntimeError:
             status = 'error'
-            output = self.output.output
+            output = self.clips_output.output
         finally:
             if not silent:
                 stream = {'name': 'stdout', 'text': output.strip()}
@@ -134,25 +136,26 @@ class CLIPSKernel(Kernel):
         output = ''
         status = 'ok'
 
-        try:
-            exec(code, globals())
-        except Exception as error:
-            status = 'error'
-            output = format_exc()
-        else:
-            if self.cell_mode == CellMode.DEFPYFUNCTION:
-                status, output = self.define_python_function(code)
+        with capture_python_output() as python_output:
+            try:
+                exec(code, globals())
+
+                if self.cell_mode == CellMode.DEFPYFUNCTION:
+                    self.define_python_function(code)
+            except Exception as error:
+                status = 'error'
+                output = format_exc()
+
+        output = python_output.getvalue() + os.linesep + output
 
         if not silent:
-            stream = {'name': 'stdout', 'text': output.strip()}
+            stream = {'name': 'stdout', 'text': output}
 
             self.send_response(self.iopub_socket, 'stream', stream)
 
         return {'status': status, 'execution_count': self.execution_count}
 
     def define_python_function(self, code: str) -> tuple:
-        output = ''
-        status = 'ok'
         match = re.search(FUNCNAME_REGEX, code)
 
         try:
@@ -161,13 +164,10 @@ class CLIPSKernel(Kernel):
 
             self.environment.define_function(function)
         except (LookupError, AttributeError):
-            status = 'error'
-            output = "No function definition found"
+            raise RuntimeError("No function definition found")
         except clips.CLIPSError as error:
-            status = 'error'
-            output = str(error) + os.linesep
-
-        return status, output
+            self.clips_output.reset()
+            raise RuntimeError("Unable to define function in CLIPS") from error
 
     def execute_clips_code(self, code: str) -> str:
         """Evaluate CLIPS code."""
@@ -216,10 +216,12 @@ class OutputRouter(clips.Router):
     @property
     def output(self) -> str:
         ret = self._output
-
-        self._output = ''
+        self.reset()
 
         return ret
+
+    def reset(self):
+        self._output = ''
 
     def query(self, name: str) -> bool:
         return name in self.ROUTERS
@@ -249,6 +251,25 @@ def even_parenthesis(code: str) -> bool:
 def global_environment(environment):
     global CLIPS
     CLIPS = environment
+
+
+@contextlib.contextmanager
+def capture_python_output() -> StringIO:
+    """Yield a buffer capturing stdout and stderr.
+
+    The buffer content is available only outside of the context manager.
+
+    """
+    output = StringIO()
+    stdout = StringIO()
+    stderr = StringIO()
+
+    with contextlib.redirect_stdout(stdout):
+        with contextlib.redirect_stderr(stderr):
+            try:
+                yield output
+            finally:
+                output.write(stdout.getvalue() + stderr.getvalue())
 
 
 class CellMode(IntEnum):
