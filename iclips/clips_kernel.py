@@ -283,7 +283,7 @@ FUNCNAME_REGEX = r'def (.*)\(.*\)'
 MAGIC_COMMANDS = 'python', 'define-python-function'
 COMPLETION = KEYWORDS + BUILTINS + MAGIC_COMMANDS
 DEFCONSTRUCTS = ('deftemplate', 'deffunction', 'defmodule',
-                 'defrule', 'defclass', 'defglobal')
+                 'defrule', 'defclass', 'defglobal', 'deffacts')
 
 
 if __name__ == '__main__':
