@@ -22,13 +22,23 @@ Detailed instructions in the documentation.
 
 .. code:: bash
 
-    pip install iclips
+    $ pip install iclips
 
 Usage
 -----
 
 .. code:: bash
 
-    jupiter console --kernel clips
+    $ jupiter console --kernel clips
 
 .. _CLIPS: http://www.clipsrules.net/
+
+Docker Container
+----------------
+
+The container ships a Jupyter Notebook with CLIPS support.
+
+.. code:: bash
+
+    $ docker build -t iclips .
+    $ docker run -p 8888:8888 iclips
