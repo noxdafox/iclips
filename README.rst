@@ -41,4 +41,9 @@ The container ships a Jupyter Notebook with CLIPS support.
 .. code:: bash
 
     $ docker build -t iclips .
-    $ docker run -p 8888:8888 iclips
+
+    # Run Jupyter Console
+    $ docker run -it iclips jupyter console --kernel clips
+
+    # Run Jupyter Notebook
+    $ docker run -it -p 8888:8888 iclips
