@@ -1,5 +1,7 @@
 FROM debian:stable-slim
 
+EXPOSE 8888
+
 # Create User
 ARG USER="clips"
 ARG HOME="/home/clips"
@@ -14,7 +16,6 @@ RUN apt-get update && apt-get install -y \
         python3 \
         python3-pip \
         python3-cffi \
-        build-essential \
         libclips/unstable \
         libclips-dev/unstable
 
@@ -25,5 +26,4 @@ RUN pip3 install iclips jupyter
 USER $USER
 WORKDIR $HOME
 
-ENTRYPOINT ["jupyter", "notebook"]
-CMD ["--no-browser", "--ip", "0.0.0.0"]
+CMD ["jupyter", "notebook", "--no-browser", "--ip", "0.0.0.0", "--port=8888"]
