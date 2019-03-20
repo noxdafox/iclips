@@ -2,6 +2,9 @@ FROM debian:stable-slim
 
 EXPOSE 8888
 
+# Set UTF-8 locales
+ENV LANG=C.UTF-8
+
 # Create User
 ARG USER="clips"
 ARG HOME="/home/clips"
