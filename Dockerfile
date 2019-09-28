@@ -10,17 +10,25 @@ ARG USER="clips"
 ARG HOME="/home/clips"
 RUN useradd --create-home --home-dir $HOME $USER
 
-# Install Debian packages
-RUN echo "APT::Default-Release \"stable\";" >> /etc/apt/apt.conf
-RUN echo "deb http://ftp.se.debian.org/debian/ unstable main" >> /etc/apt/sources.list
-
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y \
+RUN apt update && apt install -y \
+        gcc \
+        make \
+        wget \
+        unzip \
         python3 \
         python3-pip \
-        python3-cffi \
-        libclips/unstable \
-        libclips-dev/unstable
+        python3-cffi
+
+# Install CLIPSPy from sources
+ENV PYTHON python3
+RUN wget https://github.com/noxdafox/clipspy/archive/master.zip && \
+        unzip master.zip && \
+        cd clipspy-master && \
+        make && \
+        make install && \
+        cd .. && \
+        rm -fr master.zip clipspy-master
 
 # Install Python packages
 RUN pip3 install iclips jupyter
