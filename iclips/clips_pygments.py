@@ -54,7 +54,7 @@ class CLIPSLexer(RegexLexer):
                        (r"(?<=\()(%s)" % '|'.join(re.escape(entry)
                                                   for entry in builtins),
                         Name.Builtin),
-                       (r'\?' + valid_name, Name.Variable),
+                       (r'\?' + valid_name, Name.Label),
                        (r'(\(|\))', Punctuation),
                        (r'(\[|\])', Punctuation),
                        (valid_name, Text))}
