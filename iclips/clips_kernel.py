@@ -32,9 +32,9 @@ from iclips.common import KEYWORDS, BUILTINS
 class CLIPSKernel(Kernel):
     banner = 'iCLIPS'
     implementation = 'CLIPS'
-    implementation_version = '0.0.4'
+    implementation_version = '0.1.0'
     language_info = {'name': 'clips',
-                     'version': '6.30',
+                     'version': '6.31',
                      'file_extension': 'clp',
                      'mimetype': 'text/x-clips',
                      'codemirror_mode': 'clips'}
