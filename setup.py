@@ -45,11 +45,14 @@ setup(
     license='GPL',
     keywords='clips expert-system jupyter',
     install_requires=[
+        'regex',
         'clipspy',
         'jupyter-console'
     ],
     data_files=[
-        (os.path.join('share/jupyter/kernels/clips'), ['kernel.json'])
+        (os.path.join('share/jupyter/kernels/clips'), ['kernel.json']),
+        (os.path.join('share/jupyter/kernels/clips'), ['kernel.js']),
+        (os.path.join('share/jupyter/kernels/clips'), ['kernel.css'])
     ],
     packages=find_packages(),
     entry_points={
