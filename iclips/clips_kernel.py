@@ -15,7 +15,6 @@
 
 
 import os
-import re
 import glob
 import contextlib
 from io import StringIO
@@ -24,6 +23,7 @@ from traceback import format_exc
 from difflib import get_close_matches
 
 import clips
+import regex
 from ipykernel.kernelbase import Kernel
 
 from iclips.common import KEYWORDS, BUILTINS
@@ -36,7 +36,8 @@ class CLIPSKernel(Kernel):
     language_info = {'name': 'clips',
                      'version': '6.30',
                      'file_extension': 'clp',
-                     'mimetype': 'text/x-clips'}
+                     'mimetype': 'text/x-clips',
+                     'codemirror_mode': 'clips'}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -116,18 +117,20 @@ class CLIPSKernel(Kernel):
         """Handle a code cell containing CLIPS code."""
         output = ''
         status = 'ok'
+        commands = regex.findall(PARENTHESES_REGEX, code)
 
-        try:
-            result = self.execute_clips_code(code)
-            output = self.clips_output.output + os.linesep + str(result)
-        except RuntimeError:
-            status = 'error'
-            output = self.clips_output.output
-        finally:
-            if not silent:
-                stream = {'name': 'stdout', 'text': output.strip()}
+        for command in commands:
+            try:
+                result = self.execute_clips_code(command)
+                output += self.clips_output.output + os.linesep + str(result)
+            except RuntimeError:
+                status = 'error'
+                output += self.clips_output.output
 
-                self.send_response(self.iopub_socket, 'stream', stream)
+        if not silent:
+            stream = {'name': 'stdout', 'text': output.strip()}
+
+            self.send_response(self.iopub_socket, 'stream', stream)
 
         return {'status': status, 'execution_count': self.execution_count}
 
@@ -156,7 +159,7 @@ class CLIPSKernel(Kernel):
         return {'status': status, 'execution_count': self.execution_count}
 
     def define_python_function(self, code: str) -> tuple:
-        match = re.search(FUNCNAME_REGEX, code)
+        match = regex.search(FUNCNAME_REGEX, code)
 
         try:
             funcname = match.group(1)
@@ -280,6 +283,7 @@ class CellMode(IntEnum):
 
 CLIPS = None
 FUNCNAME_REGEX = r'def (.*)\(.*\)'
+PARENTHESES_REGEX = r'\((?:[^()]++|(?R))*+\)'
 MAGIC_COMMANDS = 'python', 'define-python-function'
 COMPLETION = KEYWORDS + BUILTINS + MAGIC_COMMANDS
 DEFCONSTRUCTS = ('deftemplate', 'deffunction', 'defmodule',
