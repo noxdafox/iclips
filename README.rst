@@ -27,7 +27,7 @@ Usage
 
 .. code:: bash
 
-    $ jupiter console --kernel clips
+    $ jupyter console --kernel clips
 
 .. _CLIPS: http://www.clipsrules.net/
 
