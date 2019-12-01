@@ -121,7 +121,7 @@ class CLIPSKernel(Kernel):
 
         for command in commands:
             try:
-                result = self.execute_clips_code(command)
+                result = self.execute_clips_code(command.strip())
                 output += self.clips_output.output + os.linesep + str(result)
             except RuntimeError:
                 status = 'error'
@@ -283,7 +283,7 @@ class CellMode(IntEnum):
 
 CLIPS = None
 FUNCNAME_REGEX = r'def (.*)\(.*\)'
-PARENTHESES_REGEX = r'\((?:[^()]++|(?R))*+\)'
+PARENTHESES_REGEX = r'([^()]*\((?:[^()]++|(?R))*+\))'
 MAGIC_COMMANDS = 'python', 'define-python-function'
 COMPLETION = KEYWORDS + BUILTINS + MAGIC_COMMANDS
 DEFCONSTRUCTS = ('deftemplate', 'deffunction', 'defmodule',
