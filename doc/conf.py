@@ -31,6 +31,9 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+import os
+import fileinput
+
 extensions = []
 
 # Add any paths that contain templates here, relative to this directory.
@@ -47,21 +50,26 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'iCLIPS'
-copyright = '2017, Matteo Cafasso'
+copyright = '2017-2021, Matteo Cafasso'
 author = 'Matteo Cafasso'
+
+
+CWD = os.path.dirname(__file__)
+
+
+def package_version():
+    module_path = os.path.join(CWD, '..', 'iclips', '__init__.py')
+    for line in fileinput.input(module_path):
+        if line.startswith('__version__'):
+            return line.split('=')[-1].strip().replace('\'', '')
+
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-import os
-
-version_path = os.path.join(
-    os.path.dirname(__file__), '..', 'version.py')
-
 # The short X.Y version.
-with open(version_path) as version_file:
-    version = version_file.read().split('=')[-1].strip().replace('"', '')
+version = package_version()
 # The full version, including alpha/beta/rc tags.
 release = version
 
