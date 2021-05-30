@@ -34,7 +34,7 @@ class CLIPSKernel(Kernel):
     implementation = 'CLIPS'
     implementation_version = '0.1.0'
     language_info = {'name': 'clips',
-                     'version': '6.31',
+                     'version': '6.40',
                      'file_extension': 'clp',
                      'mimetype': 'text/x-clips',
                      'codemirror_mode': 'clips'}
@@ -42,9 +42,9 @@ class CLIPSKernel(Kernel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cell_mode = CellMode.CLIPS
-        self.environment = clips.Environment()
         self.clips_output = OutputRouter()
-        self.clips_output.add_to_environment(self.environment)
+        self.environment = clips.Environment()
+        self.environment.add_router(self.clips_output)
         global_environment(self.environment)
 
     def do_execute(self, code: str, silent: bool, *_) -> dict:
@@ -229,7 +229,7 @@ class OutputRouter(clips.Router):
     def query(self, name: str) -> bool:
         return name in self.ROUTERS
 
-    def print(self, _, message: str):
+    def write(self, _name: str, message: str):
         self._output += message
 
 

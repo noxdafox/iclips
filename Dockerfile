@@ -16,6 +16,7 @@ RUN apt update && apt install -y \
         python3-pip
 
 # Install Python packages
+RUN python3 -m pip install -U pip
 RUN pip3 install iclips jupyter
 
 # Switch to CLIPS User

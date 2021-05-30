@@ -25,7 +25,7 @@ setup(
     keywords='clips expert-system jupyter',
     install_requires=[
         'regex',
-        'clipspy',
+        'clipspy >= 1.0.0',
         'jupyter-console'
     ],
     data_files=[
