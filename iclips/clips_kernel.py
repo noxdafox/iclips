@@ -35,7 +35,7 @@ class CLIPSKernel(Kernel):
     implementation_version = '0.2.1'
     language_info = {'name': 'clips',
                      'version': '6.40',
-                     'file_extension': 'clp',
+                     'file_extension': '.clp',
                      'mimetype': 'text/x-clips',
                      'codemirror_mode': 'clips'}
 
