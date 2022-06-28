@@ -117,7 +117,8 @@ class CLIPSKernel(Kernel):
         """Handle a code cell containing CLIPS code."""
         output = ''
         status = 'ok'
-        commands = regex.findall(PARENTHESES_REGEX, code)
+        uncommented_code = regex.sub(r';.*', '', code)
+        commands = regex.findall(PARENTHESES_REGEX, uncommented_code)
 
         for command in commands:
             try:
