@@ -6,6 +6,7 @@ Jupyter Kernel for CLIPS_
 :Source: https://github.com/noxdafox/iclips
 :Documentation: https://iclips.readthedocs.io
 :Download: https://pypi.python.org/pypi/iclips
+:Docker: https://hub.docker.com/r/noxdafox/iclips
 
 |docs badge|
 
@@ -38,10 +39,10 @@ The container ships a Jupyter Notebook with CLIPS support.
 
 .. code:: bash
 
-    $ docker build -t iclips .
+    $ docker pull noxdafox/iclips
 
     # Run Jupyter Console
-    $ docker run -it iclips jupyter console --kernel clips
+    $ docker run -it noxdafox/iclips jupyter console --kernel clips
 
     # Run Jupyter Notebook
-    $ docker run -it -p 8888:8888 iclips
+    $ docker run -it -p 8888:8888 noxdafox/iclips
