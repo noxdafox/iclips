@@ -28,7 +28,7 @@ Usage
 
 .. code:: bash
 
-    $ jupyter console --kernel clips
+    $ iclips
 
 .. _CLIPS: http://www.clipsrules.net/
 
@@ -42,7 +42,7 @@ The container ships a Jupyter Notebook with CLIPS support.
     $ docker pull noxdafox/iclips
 
     # Run Jupyter Console
-    $ docker run -it noxdafox/iclips jupyter console --kernel clips
+    $ docker run -it noxdafox/iclips iclips
 
     # Run Jupyter Notebook
     $ docker run -it -p 8888:8888 noxdafox/iclips
