@@ -35,6 +35,9 @@ setup(
     ],
     packages=find_packages(),
     entry_points={
+        'console_scripts': [
+            'iclips=iclips.__main__:main'
+        ],
         'pygments.lexers': [
             'clips=iclips.clips_pygments:CLIPSLexer'
         ]
