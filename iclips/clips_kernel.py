@@ -31,7 +31,7 @@ from iclips.common import KEYWORDS, BUILTINS
 class CLIPSKernel(Kernel):
     banner = 'iCLIPS'
     implementation = 'CLIPS'
-    implementation_version = '0.2.3'
+    implementation_version = '0.2.5'
     language_info = {'name': 'clips',
                      'version': '6.40',
                      'file_extension': '.clp',
