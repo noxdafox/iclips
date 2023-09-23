@@ -14,7 +14,6 @@
 # along with ICLIPS. If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
 import glob
 import contextlib
 from io import StringIO
@@ -84,7 +83,7 @@ class CLIPSKernel(Kernel):
             status = 'complete' if even_parenthesis(code) else 'incomplete'
         elif self.cell_mode in (CellMode.PYTHON, CellMode.DEFPYFUNCTION):
             indent = ''
-            status = 'complete' if code.endswith(os.linesep*2) else 'incomplete'
+            status = 'complete' if code.endswith('\n\n') else 'incomplete'
 
         return {'status': status, 'indent': indent}
 
@@ -95,16 +94,14 @@ class CLIPSKernel(Kernel):
 
         if magic == 'python':
             self.cell_mode = CellMode.PYTHON
-            text = "Python mode: return twice to execute the inserted code." + \
-                   os.linesep
+            text = "Python mode: return twice to execute the inserted code.\n"
         elif magic == 'define-python-function':
             self.cell_mode = CellMode.DEFPYFUNCTION
             text = "DefPyFunction mode: return twice " + \
-                   "to define the inserted function within CLIPS." + \
-                   os.linesep
+                   "to define the inserted function within CLIPS.\n"
         else:
             status = 'error'
-            text = "Unrecognised magic command" + os.linesep
+            text = "Unrecognised magic command\n"
 
         if not silent:
             stream = {'name': 'stdout', 'text': text}
@@ -123,7 +120,7 @@ class CLIPSKernel(Kernel):
         for command in commands:
             try:
                 result = self.execute_clips_code(command.strip())
-                output += self.clips_output.output + os.linesep + str(result)
+                output += self.clips_output.output + '\n' + str(result)
             except RuntimeError:
                 status = 'error'
                 output += self.clips_output.output
@@ -150,7 +147,7 @@ class CLIPSKernel(Kernel):
                 status = 'error'
                 output = format_exc()
 
-        output = python_output.getvalue() + os.linesep + output
+        output = python_output.getvalue() + '\n' + output
 
         if not silent:
             stream = {'name': 'stdout', 'text': output}
