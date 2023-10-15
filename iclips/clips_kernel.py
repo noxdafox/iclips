@@ -25,13 +25,14 @@ import clips
 import regex
 from ipykernel.kernelbase import Kernel
 
+from iclips import __version__
 from iclips.common import KEYWORDS, BUILTINS
 
 
 class CLIPSKernel(Kernel):
     banner = 'iCLIPS'
     implementation = 'CLIPS'
-    implementation_version = '0.2.5'
+    implementation_version = __version__
     language_info = {'name': 'clips',
                      'version': '6.41',
                      'file_extension': '.clp',
