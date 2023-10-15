@@ -50,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'iCLIPS'
-copyright = '2017-2021, Matteo Cafasso'
+copyright = '2017-2023, Matteo Cafasso'
 author = 'Matteo Cafasso'
 
 
