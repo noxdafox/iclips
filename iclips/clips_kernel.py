@@ -33,7 +33,7 @@ class CLIPSKernel(Kernel):
     implementation = 'CLIPS'
     implementation_version = '0.2.5'
     language_info = {'name': 'clips',
-                     'version': '6.40',
+                     'version': '6.41',
                      'file_extension': '.clp',
                      'mimetype': 'text/x-clips',
                      'codemirror_mode': 'clips'}
@@ -41,18 +41,31 @@ class CLIPSKernel(Kernel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cell_mode = CellMode.CLIPS
+        # I/O Routers
+        self.clips_input = InputRouter(self)
         self.clips_output = OutputRouter()
+        # CLIPS Environment
         self.environment = clips.Environment()
+        self.environment.add_router(self.clips_input)
         self.environment.add_router(self.clips_output)
         global_environment(self.environment)
 
-    def do_execute(self, code: str, silent: bool, *_) -> dict:
+    def do_execute(
+            self,
+            code: str,
+            silent: bool,
+            _store_history: bool=True,
+            _user_expressions: dict=None,
+            allow_stdin: bool=False,
+            *_
+    ) -> dict:
         """Code execution request handler."""
-        status = {'status': 'ok', 'execution_count': self.execution_count}
+        self._allow_stdin = allow_stdin
 
         if not code.strip():
-            return status
-        elif code.startswith("%%"):
+            return {'status': 'ok', 'execution_count': self.execution_count}
+
+        if code.startswith("%%"):
             status = self.magic_cell(code, silent)
         elif self.cell_mode == CellMode.CLIPS:
             status = self.clips_code_cell(code, silent)
@@ -143,7 +156,7 @@ class CLIPSKernel(Kernel):
 
                 if self.cell_mode == CellMode.DEFPYFUNCTION:
                     self.define_python_function(code)
-            except Exception as error:
+            except Exception:
                 status = 'error'
                 output = format_exc()
 
@@ -206,8 +219,35 @@ class CLIPSKernel(Kernel):
         return completion
 
 
+class InputRouter(clips.Router):
+    """CLIPS Router for capturing input requests."""
+    def __init__(self, kernel):
+        super().__init__('iclips-input-router', 40)
+        self._input = None
+        self._kernel = kernel
+
+    def query(self, name: str) -> bool:
+        return name == 'stdin'
+
+    def read(self, _name: str) -> int:
+        """Returns the next character in the input.
+        If the input buffer is empty, it requests from the client.
+
+        """
+        if self._input is None:
+            # raw_input truncates the newline
+            self._input = iter(self._kernel.raw_input())
+
+        try:
+            return ord(next(self._input))
+        except StopIteration:
+            self._input = None
+
+            return ord('\n')
+
+
 class OutputRouter(clips.Router):
-    """CLIPS Router for capturing stdout."""
+    """CLIPS Router for capturing output requests."""
     ROUTERS = {'stdout', 'stderr', 'stdwrn'}
 
     def __init__(self):
@@ -217,17 +257,15 @@ class OutputRouter(clips.Router):
     @property
     def output(self) -> str:
         ret = self._output
-        self.reset()
+        self._output = ''
 
         return ret
-
-    def reset(self):
-        self._output = ''
 
     def query(self, name: str) -> bool:
         return name in self.ROUTERS
 
     def write(self, _name: str, message: str):
+        """Appends the CLIPS message to the output."""
         self._output += message
 
 
