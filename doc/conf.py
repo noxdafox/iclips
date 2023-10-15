@@ -102,8 +102,7 @@ html_theme_options = {
     'page_width': '80%',
     'github_user': 'noxdafox',
     'github_repo': 'iclips',
-    'show_related': True,
-    'github_banner': True
+    'show_related': True
 }
 
 
